@@ -19,11 +19,12 @@ func GetAllUsers () ([]models.User, error) {
 
 	// }
 
+	defer rows.Close()
+
 	for rows.Next(){
 		var user models.User
 		err := rows.Scan(&user.Id, &user.Username, &user.Password, &user.Credit)
 		if err != nil {
-			rows.Close()
 			return nil, fmt.Errorf("package DB getAllUsers : %v", err.Error())
 		}
 		users = append(users, user)
@@ -31,7 +32,6 @@ func GetAllUsers () ([]models.User, error) {
 
 	err := rows.Err()
 	if err != nil {
-		rows.Close()
 		return nil, fmt.Errorf("package DB getAllUsers : %v", err.Error())
 	}
 

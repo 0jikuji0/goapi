@@ -16,7 +16,8 @@ func GetAllUsers(w http.ResponseWriter, r *http.Request){
 
 	users, err := db.GetAllUsers()
 	if err != nil{
-		println("pas content")
+		fmt.Println(err.Error)
+		http.Error(w, "erreur de recuperation des users", http.StatusInternalServerError)
 	}
 	
 	res, _ := json.Marshal(users)
