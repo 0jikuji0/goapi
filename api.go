@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"goapi/app"
 	"net/http"
+	"goapi/db"
 )
 
 func healthCheck(w http.ResponseWriter, r *http.Request){
@@ -16,6 +17,8 @@ func healthCheck(w http.ResponseWriter, r *http.Request){
 
 
 func main (){
+
+	db.Conn = db.NewDB()
 	fmt.Println("bonjour.")
 
 	http.HandleFunc("GET /{$}", healthCheck)

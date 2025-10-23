@@ -1,0 +1,13 @@
+version: '3.1'
+services:
+  goapi_db:
+    image: mysql
+    environment:
+      DB_PORT: "3306"
+      DB_DATABASE: "goapi_db"
+      DB_USERNAME: "user_goapi"
+      DB_PASSWORD: "password"
+    volumes:
+      - db_data:/var/lib/mysql
+volumes:
+  db_data:
