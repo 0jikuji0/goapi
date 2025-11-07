@@ -8,23 +8,30 @@ import (
 	"goapi/db"
 )
 
-func healthCheck(w http.ResponseWriter, r *http.Request){
+
+func healthCheck(w http.ResponseWriter, r *http.Request) {
+	
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Add("School", "esgi")
-	res, _ := json.Marshal("en vie")
+	w.Header().Add("school", "esgi")
+	res, _ := json.Marshal("en vie.")
 	fmt.Fprintf(w, "%s", string(res))
 }
 
-
-func main (){
+func main() {
 
 	db.Conn = db.NewDB()
-	fmt.Println("bonjour.")
 
 	http.HandleFunc("GET /{$}", healthCheck)
 	http.HandleFunc("GET /users/{$}", app.GetAllUsers)
 	http.HandleFunc("POST /users/{$}", app.CreateUser)
+	//
+	//http.HandleFunc("GET /users/{userId}", app.GetUserById)
+	//http.HandleFunc("DELETE /users/{userId}", app.DeleteUser)
+	//http.HandleFunc("PUT /users/{userId}", app.UpdateUser)
 
-	fmt.Println("Listen at http://localhost:4242")
+	//http.HandleFunc("GET /books/{$}", app.GetAllBooks)
+	//http.HandleFunc("POST /books/{$}", app.CreateBooks)
+
+	fmt.Println("Listening at http://localhost:4242")
 	http.ListenAndServe(":4242", nil)
 }

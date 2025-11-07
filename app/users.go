@@ -1,3 +1,4 @@
+
 package app
 
 import (
@@ -11,60 +12,166 @@ import (
 	"net/http"
 )
 
-
-func GetAllUsers(w http.ResponseWriter, r *http.Request){
+func GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Add("esgi", "user")
+	w.Header().Add("school", "esgi")
 
 	users, err := db.GetAllUsers()
-	if err != nil{
+	if err != nil {
 		fmt.Println(err.Error())
-		http.Error(w, "erreur de recuperation des users", http.StatusInternalServerError)
+		http.Error(w, "erreur de récupération des users", http.StatusInternalServerError)
 	}
-	
+
 	res, _ := json.Marshal(users)
 	fmt.Fprintf(w, "%s", string(res))
 }
-func CreateUser(w http.ResponseWriter, r *http.Request){
 
+func ValidateUser(userDto models.User) []string {
+	// pour faire une regex
+	//match, _ := regexp.Match("e([a-z]+)gi", []byte(userDto.Username))
+	var errsMsg []string
+
+	if len(userDto.Username) < 5 {
+		errsMsg = append(errsMsg, "username length must be at least 5")
+	}
+	if len(userDto.Password) < 6 {
+		errsMsg = append(errsMsg, "password length must be at least 6")
+	}
+	if userDto.Credit < 0 {
+		errsMsg = append(errsMsg, "Credit cannot be negative at creation")
+	}
+	if !strings.ContainsAny(userDto.Password, "!-$+/") {
+		errsMsg = append(errsMsg, "Password must contain at least 1 special char (!-$+/)")
+	}
+	if strings.Contains(userDto.Username, "TRANCHO") {
+		errsMsg = append(errsMsg, "Username must not contain the forbidden word")
+	}
+	return errsMsg
+}
+
+func CreateUser(w http.ResponseWriter, r *http.Request) {
 	var userDto models.User
 
 	err := json.NewDecoder(r.Body).Decode(&userDto)
 	if err != nil {
-		http.Error(w, "Error dans le format du user", http.StatusBadRequest)
+		http.Error(w, "Incorrect body format", http.StatusBadRequest)
 		return
 	}
 
-	var errMsg []string
+	errsMsg := ValidateUser(userDto)
 
-	if len(userDto.Username) < 5 {
-		errMsg = append(errMsg, "username length must be at least 5", http.StatusBadRequest)
-		return
-	}
-	if len(userDto.Password) < 6 {
-		errMsg = append(errMsg, "Password length must be at least 5", http.StatusBadRequest)
+	if len(errsMsg) > 0 {
+		encoded, _ := json.Marshal(errsMsg)
+		http.Error(w, string(encoded), http.StatusBadRequest)
 		return
 	}
 
-	if userDto.Credit < 0 {
-		errMsg = append(errMsg, "username length must be at least 5", http.StatusBadRequest)
+	existing, err := db.GetUsersByUsername(userDto.Username)
+	if err != nil {
+		fmt.Println(err.Error())
+		http.Error(w, "Error getting Users by username", http.StatusInternalServerError)
 		return
 	}
 
-	if !strings.ContainsAny(userDto.Password, "!-£+/@"){
-		errMsg = append(errMsg, "Password must contain at least 1 special char (!-£+/@)", http.StatusBadRequest)
-		return
-	}
-	if !strings.ContainsAny(userDto.Password, "ANTOINE"){
-		http.Error(w, "Password must contain at least 1 special char (ANTOINE)", http.StatusBadRequest)
+	if len(existing) > 0 {
+		http.Error(w, "Username must be unique", http.StatusConflict)
 		return
 	}
 
-	//si username est unique
-	http.Error(w, "username not unique", http.StatusConflict)
-	// err := db.CreateUser(userDto)
-	//si pb insertion 
-	//http.Error(w)
+	err = db.CreateUser(userDto)
+	if err != nil {
+		http.Error(w, "pb d'insertion", http.StatusInternalServerError)
+		return
+	}
 
+	w.WriteHeader(http.StatusCreated)
 }
 
+
+
+
+
+
+
+// package app
+
+// import (
+// 	"encoding/json"
+// 	"fmt"
+// 	"goapi/db"
+// 	"goapi/models"
+// 	"strings"
+
+// 	// "goapi/models"
+// 	"net/http"
+// )
+
+
+// func GetAllUsers(w http.ResponseWriter, r *http.Request) {
+// 	w.Header().Set("Content-Type", "application/json")
+// 	w.Header().Add("school", "esgi")
+
+// 	users, err := db.GetAllUsers()
+// 	if err != nil {
+// 		fmt.Println(err.Error())
+// 		http.Error(w, "erreur de récupération des users", http.StatusInternalServerError)
+// 	}
+
+// 	res, _ := json.Marshal(users)
+// 	fmt.Fprintf(w, "%s", string(res))
+// }
+
+// func CreateUser(w http.ResponseWriter, r *http.Request) {
+// 	var userDto models.User
+
+// 	err := json.NewDecoder(r.Body).Decode(&userDto)
+// 	if err != nil {
+// 		http.Error(w, "Incorrect body format", http.StatusBadRequest)
+// 		return
+// 	}
+
+// 	// pour faire une regex
+// 	//match, _ := regexp.Match("e([a-z]+)gi", []byte(userDto.Username))
+// 	var errsMsg []string
+
+// 	if len(userDto.Username) < 5 {
+// 		errsMsg = append(errsMsg, "username length must be at least 5")
+// 	}
+// 	if len(userDto.Password) < 6 {
+// 		errsMsg = append(errsMsg, "password length must be at least 6")
+// 	}
+// 	if userDto.Credit < 0 {
+// 		errsMsg = append(errsMsg, "Credit cannot be negative at creation")
+// 	}
+// 	if !strings.ContainsAny(userDto.Password, "!-$+/") {
+// 		errsMsg = append(errsMsg, "Password must contain at least 1 special char (!-$+/)")
+// 	}
+// 	if strings.Contains(userDto.Username, "TRANCHO") {
+// 		errsMsg = append(errsMsg, "Username must not contain the forbidden word")
+// 	}
+
+// 	if len(errsMsg) > 0 {
+// 		encoded, _ := json.Marshal(errsMsg)
+// 		http.Error(w, string(encoded), http.StatusBadRequest)
+// 		return
+// 	}
+
+// 	// si username est pas unique
+// 	// http.Error(w, "username not unique", http.StatusConflict)
+
+// 	existing ,err := db.GetUsersByUsername(userDto.Username)
+// 	if err != nil {
+// 		fmt.Println(err.Error())
+// 		http.Error(w, "Error getting Users by username", http.StatusInternalServerError)
+// 		return
+// 	}
+
+// 	if len(existing) > 0{
+// 		http.Error(w, "Username must be unique", http.StatusConflict)
+// 		return
+// 	}
+// 	// si pb insertion
+// 	// http.Error(w, "pb d'insertion", http.StatusInternalServerError)
+
+// 	w.WriteHeader(http.StatusCreated)
+// }

@@ -12,7 +12,7 @@ const(
 	driver	 = "mysql"
 	host	 = "localhost"
 	port 	 = 3306
-	user 	 = "msql"
+	user 	 = "user_goapi"
 	password = "password"
 	dbname	 = "goapi_db"
 )
