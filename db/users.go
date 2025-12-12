@@ -3,7 +3,7 @@ package db
 import (
 	// "database/sql"
 	"fmt"
-	"goapi/models"
+	"tpcours/models"
 )
 
 func GetAllUsers() ([]models.User, error) {
@@ -59,6 +59,16 @@ func CreateUser(user models.User) error {
 		return fmt.Errorf("package db CreateUser : %v", err.Error())
 	}
 	return nil
+}
+
+func GetUserByUsername(username string) (*models.User, error) {
+	var user models.User
+	row := Conn.QueryRow("SELECT id, username, password, credit FROM goapi_USERS WHERE username = ?", username)
+	err := row.Scan(&user.Id, &user.Username, &user.Password, &user.Credit)
+	if err != nil {
+		return nil, fmt.Errorf("GetOneUser (username=%v) : %v", username, err.Error())
+	}
+	return &user, nil
 }
 
 // package db
@@ -136,3 +146,6 @@ func CreateUser(user models.User) error {
 // 	return users, nil
 
 // }
+
+
+// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NjM2NDA3NDMsImlhdCI6MTc2MzYzNzE0MywidXNlcm5hbWUiOiJBbGxlbiJ9.2YF3JUrRcun6f3vgnVIDNu14K2mWQiBK4KR3dEKf9TQ

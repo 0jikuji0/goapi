@@ -4,12 +4,13 @@ package app
 import (
 	"encoding/json"
 	"fmt"
-	"goapi/db"
-	"goapi/models"
+	"tpcours/db"
+	"tpcours/models"
 	"strings"
-
+	"tpcours/utils"
 	// "goapi/models"
 	"net/http"
+
 )
 
 func GetAllUsers(w http.ResponseWriter, r *http.Request) {
@@ -24,6 +25,31 @@ func GetAllUsers(w http.ResponseWriter, r *http.Request) {
 
 	res, _ := json.Marshal(users)
 	fmt.Fprintf(w, "%s", string(res))
+}
+
+func Login(w http.ResponseWriter, r *http.Request) { 
+	var creds models.Credentials 
+	err := json.NewDecoder(r.Body).Decode(&creds) 
+	if err != nil { 
+		http.Error(w, "Invalid JSON", http.StatusBadRequest) 
+		return 
+	} 
+	existing, err := db.GetUserByUsername(creds.Username) 
+	if err != nil { 
+		http.Error(w, "Error requesting user by username", http.StatusInternalServerError) 
+		return 
+	}
+	if existing == nil || creds.Username != existing.Username || creds.Password != existing.Password { 
+		http.Error(w, "Unauthorized", http.StatusUnauthorized) 
+		return 
+	} 
+	token, err := utils.GenerateJWT(creds.Username) 
+	if err != nil { 
+		http.Error(w, "Error generating token", http.StatusInternalServerError) 
+		return 
+	} 
+	encodedToken, _ := json.Marshal(token) 
+	fmt.Fprintf(w, "%s", encodedToken)
 }
 
 func ValidateUser(userDto models.User) []string {

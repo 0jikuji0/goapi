@@ -6,3 +6,7 @@ type User struct {
 	Password string		`json:"password"`
 	Credit int			`json:"credit"`
 }
+type Credentials struct { 
+	Username string `json:"username"` 
+	Password string `json:"password"`
+}
