@@ -37,8 +37,8 @@ func GetAllUsers() ([]models.User, error) {
 
 	return users, nil
 }
-func GetUser(id int) ([]models.User, error) {
-	users := []models.User{}
+func GetUser(id int) (*models.User, error) {
+	user := models.User{}
 
 	var rows *sql.Rows
 
@@ -50,13 +50,13 @@ func GetUser(id int) ([]models.User, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var user models.User
+		
 		err := rows.Scan(&user.Id, &user.Username, &user.Password, &user.Credit)
 
 		if err != nil {
 			return nil, fmt.Errorf("(DATABASE) | GET USER | %v", err.Error())
 		}
-		users = append(users, user)
+
 
 	}
 
@@ -65,7 +65,7 @@ func GetUser(id int) ([]models.User, error) {
 		return nil, fmt.Errorf("(DATABASE) | GET USERS | %v", err.Error())
 	}
 
-	return users, nil
+	return &user, nil
 }
 
 func GetUsersByUsername(username string) ([]models.User, error) {
@@ -140,7 +140,7 @@ func CreateUser(user models.User) error {
 	return nil
 }
 
-func GetUsersByUsernameWithoutCurrentUse(username string, id int) ([]models.User, error) {
+func GetUsersByUsernameWithoutCurrentUser(username string, id int) ([]models.User, error) {
 	users := []models.User{}
 
 	var rows *sql.Rows

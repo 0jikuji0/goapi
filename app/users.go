@@ -52,12 +52,6 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(users) > 1 {
-		fmt.Println(err.Error())
-		http.Error(w, "(API) ", http.StatusNotFound)
-		return
-	}
-
 	if err != nil {
 		fmt.Println(err.Error())
 		http.Error(w, "(API) ", http.StatusInternalServerError)
@@ -168,7 +162,7 @@ func updateValidateUser(userDto models.User) []string {
 		errsMsg = append(errsMsg, "User not existing")
 	}
 	
-	existing, err = db.GetUsersByUsernameWithoutCurrentUse(userDto.Username, userDto.Id)
+	existing, err = db.GetUsersByUsernameWithoutCurrentUser(userDto.Username, userDto.Id)
 	
 	if err != nil {
 		errsMsg = append(errsMsg, "Error getting Users by username")
