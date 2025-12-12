@@ -34,3 +34,6 @@ func NewDB() *sql.DB {
 
     return conn
 }
+
+
+

@@ -2,150 +2,202 @@ package db
 
 import (
 	// "database/sql"
+	"database/sql"
 	"fmt"
 	"tpcours/models"
 )
 
 func GetAllUsers() ([]models.User, error) {
 	users := []models.User{}
+
+	var rows *sql.Rows
+
 	rows, err := Conn.Query("SELECT id, username, password, credit FROM goapi_USERS")
 	if err != nil {
-		return nil, fmt.Errorf("package DB getAllUsers : %v", err.Error())
+		return nil, fmt.Errorf("(DATABASE) | GET USERS | %v", err.Error())
 	}
+
 	defer rows.Close()
 
 	for rows.Next() {
 		var user models.User
 		err := rows.Scan(&user.Id, &user.Username, &user.Password, &user.Credit)
+
 		if err != nil {
-			return nil, fmt.Errorf("package DB getAllUsers : %v", err.Error())
+			return nil, fmt.Errorf("(DATABASE) | GET USERS | %v", err.Error())
 		}
+
 		users = append(users, user)
 	}
+
 	err = rows.Err()
 	if err != nil {
-		return nil, fmt.Errorf("package DB getAllUsers : %v", err.Error())
+		return nil, fmt.Errorf("(DATABASE) | GET USERS | %v", err.Error())
 	}
+
+	return users, nil
+}
+func GetUser(id int) ([]models.User, error) {
+	users := []models.User{}
+
+	var rows *sql.Rows
+
+	rows, err := Conn.Query("SELECT id, username, password, credit FROM goapi_USERS WHERE id = ?", id)
+	if err != nil {
+		return nil, fmt.Errorf("(DATABASE) | GET USER | %v", err.Error())
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var user models.User
+		err := rows.Scan(&user.Id, &user.Username, &user.Password, &user.Credit)
+
+		if err != nil {
+			return nil, fmt.Errorf("(DATABASE) | GET USER | %v", err.Error())
+		}
+		users = append(users, user)
+
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, fmt.Errorf("(DATABASE) | GET USERS | %v", err.Error())
+	}
+
 	return users, nil
 }
 
 func GetUsersByUsername(username string) ([]models.User, error) {
 	users := []models.User{}
+
+	var rows *sql.Rows
+
 	rows, err := Conn.Query("SELECT id, username, password, credit FROM goapi_USERS WHERE username = ?", username)
 	if err != nil {
-		return nil, fmt.Errorf("package DB getUsersByUsername : %v", err.Error())
+		
 	}
+
 	defer rows.Close()
 
 	for rows.Next() {
 		var user models.User
 		err := rows.Scan(&user.Id, &user.Username, &user.Password, &user.Credit)
+
 		if err != nil {
-			return nil, fmt.Errorf("package DB getUsersByUsername : %v", err.Error())
+			return nil, fmt.Errorf("(DATABASE) | GET USER BY USERNAME | %v", err.Error())
 		}
+
 		users = append(users, user)
 	}
+
 	err = rows.Err()
 	if err != nil {
-		return nil, fmt.Errorf("package DB getUsersByUsername : %v", err.Error())
+		return nil, fmt.Errorf("(DATABASE) | GET USER BY USERNAME | %v", err.Error())
 	}
+
+	return users, nil
+}
+
+func GetUsersById(id int) ([]models.User, error) {
+	users := []models.User{}
+
+	var rows *sql.Rows
+
+	rows, err := Conn.Query("SELECT id, username, password, credit FROM goapi_USERS WHERE id = ?", id)
+	if err != nil {
+		return nil, fmt.Errorf("(DATABASE) | GET USER BY ID | : %v", err.Error())
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var user models.User
+		err := rows.Scan(&user.Id, &user.Username, &user.Password, &user.Credit)
+
+		if err != nil {
+			return nil, fmt.Errorf("(DATABASE) | GET USER BY ID | %v", err.Error())
+		}
+
+		users = append(users, user)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, fmt.Errorf("(DATABASE) | GET USER BY ID | %v", err.Error())
+	}
+
 	return users, nil
 }
 
 func CreateUser(user models.User) error {
+	_, err := Conn.Exec("INSERT INTO goapi_USERS (username, password, credit) VALUES (?, ?, ?)", user.Username, user.Password, user.Credit)
 
-	_, err := Conn.Exec("INSERT INTO goapi_USERS (username, password, credit) VALUES (?,?,?)", user.Username, user.Password, user.Credit)
 	if err != nil {
-		return fmt.Errorf("package db CreateUser : %v", err.Error())
+		return fmt.Errorf("(DATABASE) | POST USER | %v", err.Error())
 	}
+
 	return nil
 }
 
-func GetUserByUsername(username string) (*models.User, error) {
-	var user models.User
-	row := Conn.QueryRow("SELECT id, username, password, credit FROM goapi_USERS WHERE username = ?", username)
-	err := row.Scan(&user.Id, &user.Username, &user.Password, &user.Credit)
+func GetUsersByUsernameWithoutCurrentUse(username string, id int) ([]models.User, error) {
+	users := []models.User{}
+
+	var rows *sql.Rows
+
+	rows, err := Conn.Query("SELECT id, username, password, credit FROM goapi_USERS WHERE username = ? AND id <> ?", username, id)
 	if err != nil {
-		return nil, fmt.Errorf("GetOneUser (username=%v) : %v", username, err.Error())
+		
 	}
-	return &user, nil
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var user models.User
+		err := rows.Scan(&user.Id, &user.Username, &user.Password, &user.Credit)
+
+		if err != nil {
+			return nil, fmt.Errorf("(DATABASE) | GET USER BY USERNAME WITHOUT CURRENT USERNAME | %v", err.Error())
+		}
+
+		users = append(users, user)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, fmt.Errorf("(DATABASE) | GET USER BY USERNAME WITHOUT CURRENT USERNAME | %v", err.Error())
+	}
+
+	return users, nil
 }
 
-// package db
+func UpdateUser(user models.User) error {
+	_, err := Conn.Exec("UPDATE goapi_USERS SET username = ?, password = ?, credit = ? WHERE id = ?", user.Username, user.Password, user.Credit, user.Id)
 
-// import (
-// 	// "database/sql"
-// 	"goapi/models"
-// 	"fmt"
-// )
+	if err != nil {
+		return fmt.Errorf("(DATABASE) | PUT USER | %v", err.Error())
+	}
 
-// func GetAllUsers () ([]models.User, error) {
-// 	users := []models.User{}
-// 	// users = append(users, models.User{Id : 1, Username: "Youssouf", Password: "secret", Credit: 30})
-// 	// users = append(users, models.User{Id : 2, Username: "Paco", Password: "secret", Credit: 70})
-
-// 	rows, err := Conn.Query("SELECT id, username, password, credit, FROM esgi.users")
-
-// 	if err != nil {
-// 		return nil, fmt.Errorf("package DB getAllUsers : %v", err.Error())
-
-// 	}
-
-// 	defer rows.Close()
-
-// 	for rows.Next(){
-// 		var user models.User
-// 		err := rows.Scan(&user.Id, &user.Username, &user.Password, &user.Credit)
-// 		if err != nil {
-// 			return nil, fmt.Errorf("package DB getAllUsers : %v", err.Error())
-// 		}
-// 		users = append(users, user)
-// 	}
-
-// 	err = rows.Err()
-// 	if err != nil {
-// 		return nil, fmt.Errorf("package DB getAllUsers : %v", err.Error())
-// 	}
-
-// 	rows.Close()
-
-// 	return users, nil
-// }
-
-// func GetUsersByUsername(username string)([]models.User, error){
-
-// 	users := []models.User{}
-// 	// users = append(users, models.User{Id : 1, Username: "Youssouf", Password: "secret", Credit: 30})
-// 	// users = append(users, models.User{Id : 2, Username: "Paco", Password: "secret", Credit: 70})
-
-// 	rows, err := Conn.Query("SELECT id, username, password, credit, FROM esgi.users WHERE username = ?")
-
-// 	if err != nil {
-// 		return nil, fmt.Errorf("package DB GetUsersByUsername : %v", err.Error())
-
-// 	}
-
-// 	defer rows.Close()
-
-// 	for rows.Next(){
-// 		var user models.User
-// 		err := rows.Scan(&user.Id, &user.Username, &user.Password, &user.Credit)
-// 		if err != nil {
-// 			return nil, fmt.Errorf("package DB GetUsersByUsername : %v", err.Error())
-// 		}
-// 		users = append(users, user)
-// 	}
-
-// 	err = rows.Err()
-// 	if err != nil {
-// 		return nil, fmt.Errorf("package DB GetUsersByUsername : %v", err.Error())
-// 	}
-
-// 	rows.Close()
-
-// 	return users, nil
-
-// }
+	return nil
+}
 
 
-// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NjM2NDA3NDMsImlhdCI6MTc2MzYzNzE0MywidXNlcm5hbWUiOiJBbGxlbiJ9.2YF3JUrRcun6f3vgnVIDNu14K2mWQiBK4KR3dEKf9TQ
+func UpdateUserCredit(user models.User) error {
+	_, err := Conn.Exec("UPDATE goapi_USERS SET credit = ? WHERE id = ?", user.Credit, user.Id)
+
+	if err != nil {
+		return fmt.Errorf("(DATABASE) | PATCH USER CREDIT | %v", err.Error())
+	}
+
+	return nil
+}
+
+func DeleteUser(user models.User) error {
+	_, err := Conn.Exec("DELETE FROM goapi_USERS WHERE id = ?", user.Id)
+
+	if err != nil {
+		return fmt.Errorf("(DATABASE) | DELETE USER | %v", err.Error())
+	}
+
+	return nil
+}
