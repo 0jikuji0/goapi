@@ -51,6 +51,7 @@ func GetUser(id int) (*models.User, error) {
 
 	for rows.Next() {
 		
+		
 		err := rows.Scan(&user.Id, &user.Username, &user.Password, &user.Credit)
 
 		if err != nil {
