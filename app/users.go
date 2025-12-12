@@ -16,7 +16,7 @@ import (
 func GetAllUsers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	users, err := db.GetUsers()
+	users, err := db.GetAllUsers()
 
 	if err != nil {
 		fmt.Println(err.Error())

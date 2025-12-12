@@ -32,7 +32,7 @@ func main() {
 	http.HandleFunc("POST /users/{$}", app.CreateUser)
 	http.HandleFunc("POST /login/{$}", app.Login)
 	
-	// http.HandleFunc("GET /users/{userId}", app.GetUserById)
+	http.HandleFunc("GET /users/{userId}", app.GetUser)
 	// http.HandleFunc("DELETE /users/{userId}", app.DeleteUser)
 	// http.HandleFunc("PUT /users/{userId}", app.UpdateUser)
 
